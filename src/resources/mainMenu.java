@@ -74,7 +74,6 @@ public class mainMenu extends JFrame {
             }
         };
         hilo.start();
-
         file= new String();
         database = new String();
         name = new String();
