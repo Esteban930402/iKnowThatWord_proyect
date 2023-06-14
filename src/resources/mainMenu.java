@@ -34,6 +34,7 @@ public class mainMenu extends JFrame {
     private List<String> wordsToMemorize;
     private List<String> theOtherWords;
     private List<String> selectdWords;
+
     public mainMenu(){
         initGUI();
         setIconImage(new ImageIcon(getClass().getResource("/resources/Imagen1.jpg")).getImage());
@@ -46,7 +47,8 @@ public class mainMenu extends JFrame {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-    private void initGUI(){
+
+    private void initGUI() {
         backgroundPanel = new JPanel(){
             protected void paintComponent(Graphics g){
                 super.paintComponent(g);
@@ -74,6 +76,9 @@ public class mainMenu extends JFrame {
             }
         };
         hilo.start();
+
+
+
         file= new String();
         database = new String();
         name = new String();
@@ -112,18 +117,6 @@ public class mainMenu extends JFrame {
             }
         });
 
-        /*noButton=new JButton("No");
-        noButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (wordTimer.isRunning()){
-                    System.out.println("Se presiono  No");
-                }
-            }
-        });
-        noButton.setBackground(Color.red);
-        noButton.setOpaque(true);*/
-
         this.buttonPanel = new JPanel();
         this.textPanel = new JPanel();
         this.counterPanel= new JPanel();
@@ -159,7 +152,153 @@ public class mainMenu extends JFrame {
 
         this.backgroundPanel.add(principalPanel,BorderLayout.SOUTH);
         getContentPane().add(backgroundPanel);
+    }
 
+    public void showWordsAndValidate() {
+        List<String> palabrasMezcladas = new ArrayList<>();
+        palabrasMezcladas.addAll(wordsToMemorize);
+        palabrasMezcladas.addAll(theOtherWords);
+        System.out.println(palabrasMezcladas);
+        Collections.shuffle(palabrasMezcladas);
+        System.out.println(palabrasMezcladas);
+        JOptionPane.showMessageDialog(null, "Select Yes if the word was in the ones shown above, if it was not found press No, you have 5 seconds to do it");
+        yesButton.setEnabled(false);
+        wordTimer = new Timer(500, new ActionListener() {
+            private int counter =0;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource()==yesButton){
+                    yesButton.setEnabled(false);
+                }
+                yesButton.setEnabled(true);
+                if (counter<palabrasMezcladas.size()){
+                    yesButton.setEnabled(true);
+                    String Word = palabrasMezcladas.get(counter);
+                    textTimer.setText(Word);
+                    counter++;
+                }else {
+                    wordTimer.stop();
+                    yesButton.setEnabled(false);
+                    int palabrasAmemorizar= wordsToMemorize.size();
+                    int porcentaje = (comparer*100)/palabrasAmemorizar;
+                    System.out.println("Porcentaje de coincidencia: " + porcentaje + "%");
+                    int porcentajeParaAvanzar=0;
+                    switch (level){
+                        case 1:
+                            porcentajeParaAvanzar=70;
+                            break;
+                        case 2:
+                            porcentajeParaAvanzar=70;
+                            break;
+                        case 3:
+                            porcentajeParaAvanzar=75;
+                            break;
+                        case 4:
+                            porcentajeParaAvanzar=80;
+                            break;
+                        case 5:
+                            porcentajeParaAvanzar=80;
+                            break;
+                        case 6:
+                            porcentajeParaAvanzar=85;
+                            break;
+                        case 7:
+                            porcentajeParaAvanzar=90;
+                            break;
+                        case 8:
+                            porcentajeParaAvanzar=90;
+                            break;
+                        case 9:
+                            porcentajeParaAvanzar=95;
+                            break;
+                        case 10:
+                            porcentajeParaAvanzar=100;
+                            break;
+                    }
+                    System.out.println(porcentajeParaAvanzar);
+                    if (porcentaje>=porcentajeParaAvanzar){
+                        filesManager filesManager = new filesManager();
+                        int currentLevel=filesManager.manageName(database,name);
+                        int newLevel= currentLevel+1;
+                        filesManager.updateLevel(database,name,newLevel);
+                        JOptionPane.showMessageDialog(null,"Congratulations, press ok if you are ready for the next level");
+                        initGame();
+                    }
+                }
+            }
+        });
+        wordTimer.start();
+    }
+
+    public void initGame(){
+        inGameBackgroundPanel = new JPanel(){
+            protected void paintComponent(Graphics g){
+                super.paintComponent(g);
+                if(backgroundTest2!=null){
+                    g.drawImage(backgroundTest2,0,0,getWidth(),getHeight(),null);
+                }
+
+            }
+        };
+        inGameBackgroundPanel.setPreferredSize(new Dimension(1400,1080));
+
+        //Creacion de hilo
+
+        Thread hilo2= new Thread(){
+            @Override
+            public void run(){
+                try {
+                    backgroundTest2= ImageIO.read(getClass().getResource("/resources/mainMenuBackground.jpg"));
+                    inGameBackgroundPanel.repaint();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        hilo2.start();
+
+        selectdWords = new ArrayList<>();
+        getContentPane().removeAll();
+        getContentPane().revalidate();
+        getContentPane().repaint();
+        principalPanel.removeAll();
+        principalPanel.repaint();
+        principalPanel.revalidate();
+        textTimer.setBounds(420,320,100,30);
+        textTimer.setFont(textTimer.getFont().deriveFont(Font.ITALIC,60));
+        yesButton.setBounds(500,320,500,500);
+        inGameBackgroundPanel.add(yesButton);
+        inGameBackgroundPanel.add(textTimer);
+
+
+        getContentPane().add(inGameBackgroundPanel);
+        getContentPane().repaint();
+        getContentPane().revalidate();
+        yesButton.setEnabled(false);
+        principalPanel.repaint();
+        principalPanel.revalidate();
+        filesManager filesManager = new filesManager();
+        database = "C:\\Users\\Owner\\IdeaProjects\\pruebastxt\\src\\resources\\database.txt";
+        file = "C:\\Users\\Owner\\IdeaProjects\\pruebastxt\\src\\resources\\words.txt";
+        name = playerUsername.getText();
+        filesManager.manageName(database,name);
+        level = filesManager.manageName(database,name);
+        try {
+            List<String> randomLines = filesManager.getRandomLines(file, level);
+            for (String linea : randomLines) {
+                // System.out.println(linea);
+            }
+            int totalLines=randomLines.size();
+            int ammountToMemorize=(randomLines.size()/2);
+            System.out.println(ammountToMemorize);
+            wordsToMemorize=randomLines.subList(0,ammountToMemorize);
+            theOtherWords=randomLines.subList(ammountToMemorize,totalLines);
+            System.out.println(wordsToMemorize+"Palabra a memorizar\n");
+            System.out.println(theOtherWords+"NO ");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        timer.start();
     }
     public static void main(String[] args){
         EventQueue.invokeLater(() -> {
