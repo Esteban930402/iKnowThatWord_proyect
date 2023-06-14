@@ -60,5 +60,41 @@ public class filesManager {
         }
         return randomLines;
     }
+    public int manageName(String explorerID, String name){
+        int ronda = 0;
+        try {
+            File file = new File(explorerID);
+            Scanner scanner = new Scanner(file);
+
+            boolean search=false;
+            int getLevel = 0;
+            int firstLevel =1;
+
+            while(scanner.hasNextLine()){
+                String linea2 = scanner.nextLine();
+                String[] partes = linea2.split(":");
+
+                if(partes.length==2 && partes[0].equals(name)){
+                    search=true;
+                    getLevel=Integer.parseInt(partes[1]);
+                    break;
+                }
+            }
+            scanner.close();
+            if (search){
+                ronda= getLevel;
+                System.out.println("El nombre"+name+"Se encontro en el nivel: "+getLevel);
+            } else {
+                FileWriter fileWriter = new FileWriter(explorerID,true);
+                fileWriter.write(name+":"+firstLevel);
+                fileWriter.write(System.lineSeparator());
+                fileWriter.close();
+                System.out.println("El nombre : "+name+"Fue agregado con el nivel incial");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return ronda;
+    }
 
 }
